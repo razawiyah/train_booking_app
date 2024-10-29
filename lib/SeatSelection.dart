@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-
 import 'BookingDetail.dart';
 
 class SeatSelection extends StatefulWidget {
@@ -25,6 +24,7 @@ class _SeatSelectionState extends State<SeatSelection> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Select Seat - ${widget.trainName}"),
+        backgroundColor: Colors.pink[300],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -43,6 +43,7 @@ class _SeatSelectionState extends State<SeatSelection> {
                 return ChoiceChip(
                   label: Text("Coach ${index + 1}"),
                   selected: selectedCoach == index + 1,
+                  selectedColor: Colors.pink[300],
                   onSelected: (bool selected) {
                     setState(() {
                       selectedCoach = index + 1;
@@ -62,42 +63,52 @@ class _SeatSelectionState extends State<SeatSelection> {
             ),
             SizedBox(height: 10),
             Expanded(
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  childAspectRatio: 2,
-                  crossAxisSpacing: 10,
-                  mainAxisSpacing: 10,
-                ),
-                itemCount: seatsPerCoach,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedSeat = index + 1;
-                        seatPrice = 10.0 + (index % 5) * 2; // Example dynamic pricing
-                      });
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: selectedSeat == index + 1
-                            ? Colors.blue
-                            : Colors.grey[300],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: Text(
-                          "Seat ${index + 1}",
-                          style: TextStyle(
-                            color: selectedSeat == index + 1
-                                ? Colors.white
-                                : Colors.black,
+              child: Column(
+                children: List.generate(numberOfCoaches, (coachIndex) {
+                  return Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(4, (seatIndex) {
+                        int seatNum = (coachIndex * 4) + seatIndex + 1;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              selectedSeat = seatNum;
+                              seatPrice = 10.0 + (seatIndex % 5) * 2; // Example dynamic pricing
+                            });
+                          },
+                          child: Container(
+                            width: 50,
+                            height: 50,
+                            margin: EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: selectedSeat == seatNum
+                                  ? Colors.pink[300] // Selected seat color
+                                  : Colors.grey[300],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: selectedSeat == seatNum
+                                    ? Colors.white
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                "S${seatNum}",
+                                style: TextStyle(
+                                  color: selectedSeat == seatNum
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+                        );
+                      }),
                     ),
                   );
-                },
+                }),
               ),
             ),
 
@@ -120,6 +131,9 @@ class _SeatSelectionState extends State<SeatSelection> {
                   _confirmSelection();
                 }
                     : null, // Disable if no seat is selected
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pink[300],
+                ),
                 child: Text("Confirm"),
               ),
             ),
@@ -128,39 +142,6 @@ class _SeatSelectionState extends State<SeatSelection> {
       ),
     );
   }
-
-/*
-  void _confirmSelection() {
-    // Confirm selection logic (navigate or display a confirmation message)
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Confirmation"),
-        content: Text(
-            "You have selected Coach $selectedCoach, Seat $selectedSeat with a price of RM$seatPrice."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("OK"),
-          ),
-        ],
-      ),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BookingDetail(
-                trainName: widget.trainName,
-                departureTime: "10:00 AM", // Replace with actual departure time
-                arrivalTime: "2:00 PM", // Replace with actual arrival time
-                totalAmount: seatPrice,
-              ),
-            ),
-          );
-        }
-    );
-  }
-*/
 
   void _confirmSelection() {
     // Confirm selection logic (navigate or display a confirmation message)

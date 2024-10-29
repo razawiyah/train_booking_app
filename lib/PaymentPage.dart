@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'BookingSummary.dart';
 
 class PaymentPage extends StatefulWidget {
   final double amount;
+  final String email; // Add this line to accept email
 
-  PaymentPage({required this.amount});
+  PaymentPage({required this.amount, required this.email, required String userEmail}); // Update constructor
 
   @override
   _PaymentPageState createState() => _PaymentPageState();
@@ -37,29 +39,32 @@ class _PaymentPageState extends State<PaymentPage> {
     super.dispose();
   }
 
-/*
-  void _processPayment() {
-    String paymentMethod = selectedPaymentMethod == "Card" ? "Card Payment" : "Online Banking - $selectedBank";
+  Future<void> _sendEmail() async {
+    final apiUrl = 'https://api.brevo.com/v3/smtp/email'; // Brevo API endpoint
+    final apiKey = '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'; // Replace with your actual API key
 
-    // Show a success dialog (simulated payment process)
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Payment Successful"),
-        content: Text("You have successfully paid RM${widget.amount} using $paymentMethod."),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to the previous screen
-            },
-            child: Text("OK"),
-          ),
-        ],
-      ),
+    final emailData = {
+      "sender": {"name": "Your App Name", "email": "yourapp@example.com"},
+      "to": [{"email": widget.email}], // Use the passed email here
+      "subject": "Booking Confirmation",
+      "htmlContent": "<h1>Your booking has been confirmed!</h1><p>Total Amount: RM${widget.amount}</p>",
+    };
+
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {
+        'Content-Type': 'application/json',
+        'api-key': apiKey,
+      },
+      body: json.encode(emailData),
     );
+
+    if (response.statusCode == 200) {
+      print('Email sent successfully');
+    } else {
+      print('Failed to send email: ${response.statusCode}');
+    }
   }
-*/
 
   void _processPayment() {
     // Show a success dialog before navigating
@@ -72,6 +77,7 @@ class _PaymentPageState extends State<PaymentPage> {
           TextButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
+              _sendEmail(); // Send email with booking details
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -106,6 +112,19 @@ class _PaymentPageState extends State<PaymentPage> {
               "Amount to Pay: RM${widget.amount}",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            SizedBox(height: 20),
+
+            // Email Input Field
+            TextField(
+              decoration: InputDecoration(
+                labelText: "Email Address",
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.emailAddress,
+              controller: TextEditingController(text: widget.email), // Pre-fill with email
+              enabled: false, // Disable editing
+            ),
+
             SizedBox(height: 20),
 
             // Payment Method Selection
@@ -165,52 +184,37 @@ class _PaymentPageState extends State<PaymentPage> {
               TextField(
                 controller: _cvvController,
                 decoration: InputDecoration(
+
+
                   labelText: "CVV",
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
                 maxLength: 3,
               ),
-            ],
-
-            // FPX-like Bank Selection (Shown if "Online Banking" is selected)
-            if (selectedPaymentMethod == "Online Banking") ...[
-              Text(
-                "Select Bank:",
-                style: TextStyle(fontSize: 18),
-              ),
+            ] else if (selectedPaymentMethod == "Online Banking") ...[
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
+                hint: Text("Select Bank"),
                 value: selectedBank,
-                hint: Text("Choose your bank"),
-                items: bankList.map((bank) {
-                  return DropdownMenuItem(
-                    value: bank,
-                    child: Text(bank),
-                  );
-                }).toList(),
-                onChanged: (value) {
+                onChanged: (newValue) {
                   setState(() {
-                    selectedBank = value!;
+                    selectedBank = newValue;
                   });
                 },
+                items: bankList.map((bank) {
+                  return DropdownMenuItem(
+                    child: Text(bank),
+                    value: bank,
+                  );
+                }).toList(),
               ),
             ],
 
             SizedBox(height: 20),
 
-            // Confirm Payment Button
-            Center(
-              child: ElevatedButton(
-                onPressed: selectedPaymentMethod == "Online Banking" && selectedBank == null
-                    ? null // Disable if no bank is selected
-                    : () {
-                  _processPayment();
-                },
-                child: Text("Confirm Payment"),
-              ),
+            ElevatedButton(
+              onPressed: _processPayment,
+              child: Text("Pay"),
             ),
           ],
         ),
