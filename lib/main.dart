@@ -1,125 +1,259 @@
 import 'package:flutter/material.dart';
 
+import 'TrainInfo.dart';
+
 void main() {
-  runApp(const MyApp());
+  runApp(TrainBookingApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+class TrainBookingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      title: 'Train Booking App',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
+class HomePage extends StatefulWidget {
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _HomePageState createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _HomePageState extends State<HomePage> {
+  String tripType = "One Way"; // Default trip type
+  String fromLocation = "";
+  String toLocation = "";
+  DateTime? departureDate;
+  DateTime? returnDate;
+  int pax = 1;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+  final List<String> locations = ["Location A", "Location B", "Location C"]; // Sample locations
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text("Train Booking App"),
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            // Trip Type Selection
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ChoiceChip(
+                  label: Text("One Way"),
+                  selected: tripType == "One Way",
+                  onSelected: (selected) {
+                    setState(() {
+                      tripType = "One Way";
+                      returnDate = null;
+                    });
+                  },
+                ),
+                SizedBox(width: 10),
+                ChoiceChip(
+                  label: Text("Round Trip"),
+                  selected: tripType == "Round Trip",
+                  onSelected: (selected) {
+                    setState(() {
+                      tripType = "Round Trip";
+                    });
+                  },
+                ),
+              ],
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+
+            SizedBox(height: 20),
+
+            // From Dropdown
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(labelText: "From"),
+              value: fromLocation.isNotEmpty ? fromLocation : null,
+              items: locations.map((location) {
+                return DropdownMenuItem(
+                  value: location,
+                  child: Text(location),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  fromLocation = value!;
+                });
+              },
+            ),
+
+            SizedBox(height: 10),
+
+            // To Dropdown
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(labelText: "To"),
+              value: toLocation.isNotEmpty ? toLocation : null,
+              items: locations.map((location) {
+                return DropdownMenuItem(
+                  value: location,
+                  child: Text(location),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  toLocation = value!;
+                });
+              },
+            ),
+
+            SizedBox(height: 10),
+
+            // Departure Date Picker
+            ListTile(
+              title: Text("Departure Date: ${departureDate != null ? departureDate.toString().split(" ")[0] : "Select Date"}"),
+              trailing: Icon(Icons.calendar_today),
+              onTap: () async {
+                DateTime? selectedDate = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(Duration(days: 365)),
+                );
+                if (selectedDate != null) {
+                  setState(() {
+                    departureDate = selectedDate;
+                  });
+                }
+              },
+            ),
+
+            // Return Date Picker (Conditional)
+            if (tripType == "Round Trip")
+              ListTile(
+                title: Text("Return Date: ${returnDate != null ? returnDate.toString().split(" ")[0] : "Select Date"}"),
+                trailing: Icon(Icons.calendar_today),
+                onTap: () async {
+                  DateTime? selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: departureDate ?? DateTime.now(),
+                    firstDate: departureDate ?? DateTime.now(),
+                    lastDate: DateTime.now().add(Duration(days: 365)),
+                  );
+                  if (selectedDate != null) {
+                    setState(() {
+                      returnDate = selectedDate;
+                    });
+                  }
+                },
+              ),
+
+            SizedBox(height: 10),
+
+            // Pax Counter
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Pax: $pax"),
+                Row(
+                  children: [
+                    IconButton(
+                      onPressed: () {
+                        if (pax > 1) {
+                          setState(() {
+                            pax--;
+                          });
+                        }
+                      },
+                      icon: Icon(Icons.remove),
+                    ),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          pax++;
+                        });
+                      },
+                      icon: Icon(Icons.add),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+
+            SizedBox(height: 20),
+
+            // Search Button
+            ElevatedButton(
+              onPressed: _validateAndSearch,
+              child: Text("Search"),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+
+  // Validation and Search Logic
+/*
+  void _validateAndSearch() {
+    if (fromLocation.isEmpty ||
+        toLocation.isEmpty ||
+        departureDate == null ||
+        (tripType == "Round Trip" && returnDate == null)) {
+      // Show popup if any field is missing
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Incomplete Information"),
+          content: Text("Please fill in all required fields."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Proceed with search logic
+      // Implement the actual search logic or navigation here
+      print("Searching with provided details...");
+    }
+  }
+*/
+
+  void _validateAndSearch() {
+    if (fromLocation.isEmpty ||
+        toLocation.isEmpty ||
+        departureDate == null ||
+        (tripType == "Round Trip" && returnDate == null)) {
+      // Show popup if any field is missing
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text("Incomplete Information"),
+          content: Text("Please fill in all required fields."),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("OK"),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // Navigate to TrainInfo screen with provided details
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TrainInfo(
+            fromLocation: fromLocation,
+            toLocation: toLocation,
+            departureDate: departureDate!,
+            returnDate: tripType == "Round Trip" ? returnDate : null,
+          ),
+        ),
+      );
+    }
   }
 }
